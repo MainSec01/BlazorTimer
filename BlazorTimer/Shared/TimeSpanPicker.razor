@@ -1,0 +1,36 @@
+﻿@using System.Globalization
+
+<div class="form-group">
+    <input type="text" class="form-control" id="@FieldId" @bind="TimeSpanString" @oninput="OnInputChanged" placeholder="@TimeSpanFormatPlaceholder" />
+</div>
+
+@code {
+    [Parameter] public TimeSpan TimeSpanValue { get; set; }
+    [Parameter] public EventCallback<TimeSpan> TimeSpanValueChanged { get; set; }
+    [Parameter] public string FieldId { get; set; } = Guid.NewGuid().ToString();
+    [Parameter] public string TimeSpanFormat { get; set; } = @"hh\:mm\:ss";
+    [Parameter] public string TimeSpanFormatPlaceholder { get; set; } = "hh:mm:ss";
+
+    private string TimeSpanString
+    {
+        get => TimeSpanValue.ToString(TimeSpanFormat, CultureInfo.InvariantCulture);
+        set
+        {
+            if (TimeSpan.TryParseExact(value, TimeSpanFormat, CultureInfo.InvariantCulture, out var parsedTimeSpan))
+            {
+                TimeSpanValue = parsedTimeSpan;
+                TimeSpanValueChanged.InvokeAsync(TimeSpanValue);
+            }
+        }
+    }
+
+    private void OnInputChanged(ChangeEventArgs e)
+    {
+        var input = e.Value?.ToString();
+        if (input != null && TimeSpan.TryParseExact(input, TimeSpanFormat, CultureInfo.InvariantCulture, out var result))
+        {
+            TimeSpanValue = result;
+            TimeSpanValueChanged.InvokeAsync(TimeSpanValue);
+        }
+    }
+}
